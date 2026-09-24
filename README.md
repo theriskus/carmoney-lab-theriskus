@@ -31,6 +31,34 @@ Docker'а на ноутбуке нет? Тогда локально работа
 | `make seed` | перезалить учебные данные |
 | `make help` | список всех команд |
 
+## Как проверить, что сервис жив
+
+После `make up` сервис поднимается на `http://localhost:8080` (или на порту из `APP_PORT`),
+а MySQL — на `${DB_PORT:-3307}`. Самый быстрый smoke-тест — три команды:
+
+```bash
+make ps                 # оба контейнера (backend, db) в статусе Up/healthy
+curl http://localhost:8080/health   # → {"status":"ok",...}
+curl -X POST http://localhost:8080/api/ltv \
+  -H 'Content-Type: application/json' \
+  -d '{"vin":"XTA21099998765432","year":2019,"mileage":84000,
+       "market_value":900000,"requested_amount":450000,"term_months":24}'
+```
+
+Если что-то пошло не так:
+
+| Что проверить | Команда |
+|---|---|
+| Состояние контейнеров (Up/healthy, порты, имена) | `make ps` |
+| Логи backend в реальном времени (Ctrl+C — выход) | `make logs` |
+| Полные логи всех сервисов разом | `docker compose logs -f` |
+| Перезапуск без потери данных в томе | `make down && make up` |
+| Зависимости backend (PHP, composer, vendor) подтянуты | `make install` (локально) или `docker compose run --rm --no-deps backend composer install` |
+
+`/health` — самый дешёвый маркер: он не ходит в базу и отвечает за миллисекунды. Если он
+отдаёт `ok`, а `/api/ltv` падает — смотрите `make logs` и состояние `db` в `make ps`
+(`healthy` в колонке STATUS означает, что MySQL принял соединения).
+
 ## API
 
 | Метод | Путь | Зачем |
