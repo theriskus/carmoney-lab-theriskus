@@ -21,6 +21,9 @@ return [
         'min_year' => 1990,
         'max_age_years' => 20,
         'max_mileage_km' => 500000,
+        // Пробег строго больше значения понижает approve до review.
+        // Валидационный потолок max_mileage_km (500000) при этом не меняется.
+        'review_above_mileage_km' => 400000,
     ],
 
     'amount' => [
